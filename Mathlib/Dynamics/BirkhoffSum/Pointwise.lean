@@ -8,12 +8,12 @@ module
 public import Mathlib.Dynamics.BirkhoffSum.Average
 public import Mathlib.MeasureTheory.MeasurableSpace.Invariants
 public import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
-import Mathlib.Algebra.Order.Group.PartialSups
-import Mathlib.Algebra.Order.Ring.Star
-import Mathlib.Data.Real.StarOrdered
-import Mathlib.Dynamics.BirkhoffSum.QuasiMeasurePreserving
-import Mathlib.MeasureTheory.Integral.DominatedConvergence
-import Mathlib.Topology.Algebra.Module.WeakDual
+public import Mathlib.Algebra.Order.Group.PartialSups
+public import Mathlib.Algebra.Order.Ring.Star
+public import Mathlib.Data.Real.StarOrdered
+public import Mathlib.Dynamics.BirkhoffSum.QuasiMeasurePreserving
+public import Mathlib.MeasureTheory.Integral.DominatedConvergence
+public import Mathlib.Topology.Algebra.Module.WeakDual
 
 /-!
 # Pointwise Ergodic Theorem
@@ -37,6 +37,8 @@ of `f`-invariant sets. This is used explicitly during this proof and also in the
 -/
 
 variable {α : Type*}
+
+open MeasureTheory Measure MeasurableSpace Filter Topology
 
 section BirkhoffMax
 
@@ -104,8 +106,6 @@ lemma birkhoffMax_measurable [MeasurableSpace α] {f : α → α} (hf : Measurab
   induction n <;> measurability
 
 section MeasurePreserving
-
-open MeasureTheory Measure MeasurableSpace Filter Topology
 
 variable {f : α → α} [MeasurableSpace α] (μ : Measure α := by volume_tac) {g : α → ℝ} {n}
   (hf : MeasurePreserving f μ μ) (hg : Integrable g μ)
@@ -190,12 +190,12 @@ end PR
 
 section BirkhoffSup
 
-def birkhoffSupSet (f : α → α) (g : α → ℝ) : Set α := {x | ∃ n : ℕ, birkhoffSum f g n x > 0}
+def birkhoffSupSet (f : α → α) (g : α → ℝ) : Set α := {x | ∃ n : ℕ, 0 < birkhoffSum f g n x}
 
 lemma birkhoffSupSet_eq_iSup_birkhoffMax_support {f : α → α} {g : α → ℝ} :
     birkhoffSupSet f g = ⋃ n : ℕ, (birkhoffMax f g n).support := by
   ext x
-  simp only [birkhoffSupSet, gt_iff_lt, Set.mem_setOf_eq, Set.mem_iUnion, Function.mem_support]
+  simp only [birkhoffSupSet, Set.mem_setOf_eq, Set.mem_iUnion, Function.mem_support]
   constructor
   · refine fun ⟨n, hn⟩ => ⟨n, ?_⟩
     apply ne_of_gt
@@ -211,8 +211,6 @@ lemma birkhoffSupSet_eq_iSup_birkhoffMax_support {f : α → α} {g : α → ℝ
       exact ⟨m, hm₂ ▸ h⟩
 
 section MeasurePreserving
-
-open MeasureTheory Measure MeasurableSpace Filter Topology
 
 variable {f : α → α} [MeasurableSpace α] (μ : Measure α := by volume_tac) {g : α → ℝ} {n}
   (hf : MeasurePreserving f μ μ) (hg : Integrable g μ)
@@ -241,7 +239,36 @@ theorem setIntegral_nonneg_on_birkhoffSupSet :
   intro n
   exact setIntegral_nonneg_on_birkhoffMax_support μ hf hg
 
+def birkhoffAverageSupSet (f : α → α) (g : α → ℝ) (a : ℝ) : Set α :=
+  {x | ∃ n : ℕ, a < birkhoffAverage ℝ f g n x}
+
+theorem birkhoffAverageSupSet_eq_birkhoffSupSet {x} {a : ℝ} (hn : 0 < n) :
+    a < birkhoffAverage ℝ f g n x ↔ 0 < birkhoffSum f (g - fun _ ↦ a) n x := by
+  nth_rw 2 [←smul_lt_smul_iff_of_pos_left (a := (↑n : ℝ)⁻¹) (by norm_num [hn])]
+  rw [smul_zero, ←birkhoffAverage, birkhoffAverage_sub]
+  simp only [Pi.sub_apply, sub_pos]
+  nth_rw 2 [birkhoffAverage_of_comp_eq rfl hn.ne']
+
+theorem setIntegral_nonneg_on_birkhoffSupSet' [IsFiniteMeasure μ] (a : ℝ) :
+    μ.real (birkhoffSupSet f g) • a ≤ ∫ x in birkhoffSupSet f g, g x ∂μ := by
+  calc
+    _ = ∫ x in birkhoffSupSet f g, a ∂μ := by rw [setIntegral_const]
+    _ ≤ ∫ x in birkhoffSupSet f g, a ∂μ + ∫ (x : α) in birkhoffSupSet f g, g x ∂μ := by sorry
+
+theorem setIntegral_nonneg_on_birkhoffSupSet'' (a : ℝ) :
+    a * μ.real (birkhoffSupSet f g) ≤ ‖hg.toL1‖ := by
+  sorry
+
 end MeasurePreserving
 
 end BirkhoffSup
 
+noncomputable section BirkhoffAverage
+
+variable {f : α → α} [MeasurableSpace α] (μ : Measure α := by volume_tac) {g : α → ℝ} {n}
+  (hf : MeasurePreserving f μ μ) (hg : Integrable g μ)
+
+def birkhoffOscillation (f : α → α) (g : α → ℝ) (x : α) : ℝ :=
+  limsup (birkhoffAverage ℝ f g · x) atTop - liminf (birkhoffAverage ℝ f g · x) atTop
+
+end BirkhoffAverage
