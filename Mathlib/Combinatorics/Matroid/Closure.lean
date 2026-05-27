@@ -146,10 +146,10 @@ instance : Nonempty {F | M.IsFlat F ∧ X ∩ M.E ⊆ F} := ⟨M.E, M.ground_isF
 lemma closure_eq_subtypeClosure (M : Matroid α) (X : Set α) :
     M.closure X = M.subtypeClosure ⟨X ∩ M.E, inter_subset_right⟩  := by
   suffices ∀ (x : α), (∀ (t : Set α), M.IsFlat t → X ∩ M.E ⊆ t → x ∈ t) ↔
-    (x ∈ M.E ∧ ∀ a ⊆ M.E, X ∩ M.E ⊆ a → M.IsFlat a → x ∈ a) by
+    (x ∈ M.E ∧ ∀ a ⊆ M.E, M.IsFlat a → X ∩ M.E ⊆ a → x ∈ a) by
     simpa [closure, subtypeClosure, Set.ext_iff]
-  exact fun x ↦ ⟨fun h ↦ ⟨h _ M.ground_isFlat inter_subset_right, fun F _ hXF hF ↦ h F hF hXF⟩,
-    fun ⟨_, h⟩ F hF hXF ↦ h F hF.subset_ground hXF hF⟩
+  exact fun x ↦ ⟨fun h ↦ ⟨h _ M.ground_isFlat inter_subset_right, fun F _ hXF hF ↦ h F hXF hF⟩,
+    fun ⟨_, h⟩ F hF hXF ↦ h F hF.subset_ground hF hXF⟩
 
 @[aesop unsafe 10% (rule_sets := [Matroid])]
 lemma closure_subset_ground (M : Matroid α) (X : Set α) : M.closure X ⊆ M.E :=

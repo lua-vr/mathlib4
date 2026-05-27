@@ -260,10 +260,10 @@ variable [CompleteLattice α] (c : ClosureOperator α)
 /-- Define a closure operator from a predicate that's preserved under infima. -/
 @[simps!]
 def ofCompletePred (p : α → Prop) (hsinf : ∀ s, (∀ a ∈ s, p a) → p (sInf s)) : ClosureOperator α :=
-  ofPred (fun a ↦ ⨅ b : {b // a ≤ b ∧ p b}, b) p
+  ofPred (fun a ↦ sInf {b | p b ∧ a ≤ b}) p
     (fun a ↦ by simp +contextual)
-    (fun _ ↦ hsinf _ <| forall_mem_range.2 fun b ↦ b.2.2)
-    (fun _ b hab hb ↦ iInf_le_of_le ⟨b, hab, hb⟩ le_rfl)
+    (fun _ ↦ hsinf _ (fun _ hx ↦ hx.1))
+    (fun _ b hab hb ↦ sInf_le_of_le ⟨hb, hab⟩ le_rfl)
 
 theorem sInf_isClosed {c : ClosureOperator α} {S : Set α}
     (H : ∀ x ∈ S, c.IsClosed x) : c.IsClosed (sInf S) :=
