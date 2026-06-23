@@ -95,7 +95,7 @@ theorem comap_eq_generateFrom (m : MeasurableSpace β) (f : α → β) :
   (@generateFrom_measurableSet _ (.comap f m)).symm
 
 @[simp]
-theorem comap_id : m.comap id = m :=
+theorem comap_id : m.comap (fun x ↦ x) = m :=
   MeasurableSpace.ext fun s => ⟨fun ⟨_, hs', h⟩ => h ▸ hs', fun h => ⟨s, h, rfl⟩⟩
 
 @[simp]
