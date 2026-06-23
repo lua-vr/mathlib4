@@ -317,3 +317,6 @@ instance [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ
 /- This instance should not be necessary, but Lean has difficulties to find it in product
 situations if we do not declare it explicitly. -/
 instance Real.measureSpace : MeasureSpace ℝ := by infer_instance
+
+instance NNReal.measureSpace : MeasureSpace NNReal where
+  volume := volume.comap NNReal.toReal
