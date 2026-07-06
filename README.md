@@ -1,3 +1,3 @@
 # My copy of `mathlib`
 
-This repository stores my branches from Mathlib.
+This repository stores my branches of Mathlib.
