@@ -7,6 +7,8 @@ module
 
 public import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
 public import Mathlib.MeasureTheory.VectorMeasure.Decomposition.Lebesgue
+public import Mathlib.MeasureTheory.VectorMeasure.Integral
+public import Mathlib.MeasureTheory.VectorMeasure.Variation.SignedMeasure
 
 set_option doc.verso true
 set_option doc.verso.suggestions false
@@ -51,6 +53,26 @@ theorem withDensityᵥ_rnDeriv_eq (s : SignedMeasure α) (μ : Measure α) [Sigm
 theorem absolutelyContinuous_iff_withDensityᵥ_rnDeriv_eq (s : SignedMeasure α) (μ : Measure α)
     [SigmaFinite μ] : s ≪ᵥ μ.toENNRealVectorMeasure ↔ μ.withDensityᵥ (s.rnDeriv μ) = s :=
   ⟨withDensityᵥ_rnDeriv_eq s μ, fun h => h ▸ withDensityᵥ_absolutelyContinuous _ _⟩
+
+/-- If a signed measure `s` is absolutely continuous with respect to `μ`, then integrating `f`
+against `s` is the same as integrating `s.rnDeriv μ • f` against `μ`. -/
+theorem integral_rnDeriv_smul {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
+    {s : SignedMeasure α} {μ : Measure α} [s.HaveLebesgueDecomposition μ]
+    (h : s ≪ᵥ μ.toENNRealVectorMeasure) {f : α → G} (hf : s.Integrable f) :
+    ∫ x, s.rnDeriv μ x • f x ∂μ = ∫ᵛ x, f x ∂<•s := by
+  rw [absolutelyContinuous_ennreal_iff, ennrealToMeasure_toENNRealVectorMeasure,
+    totalVariation_absolutelyContinuous_iff] at h
+  obtain ⟨hPμ, hNμ⟩ := h
+  rw [VectorMeasure.Integrable, ← totalVariation_eq_variation, totalVariation] at hf
+  have hP := hf.mono_measure (Measure.le_add_right le_rfl)
+  have hN := hf.mono_measure (Measure.le_add_left le_rfl)
+  simp_rw [rnDeriv_def, sub_smul]
+  rw [integral_sub ((integrable_rnDeriv_smul_iff hPμ).mpr hP)
+      ((integrable_rnDeriv_smul_iff hNμ).mpr hN), MeasureTheory.integral_rnDeriv_smul hPμ,
+    MeasureTheory.integral_rnDeriv_smul hNμ]
+  conv_rhs => rw [← s.toSignedMeasure_toJordanDecomposition, JordanDecomposition.toSignedMeasure]
+  rw [integral_sub_vectorMeasure (by simpa [VectorMeasure.Integrable])
+    (by simpa [VectorMeasure.Integrable]), integral_toSignedMeasure, integral_toSignedMeasure]
 
 end SignedMeasure
 
